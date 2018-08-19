@@ -17,11 +17,14 @@ import org.springframework.http.HttpHeaders;
 public class CollectionSpaceRequestWrapper extends HttpServletRequestWrapper {
 	private static Logger log = LoggerFactory.getLogger(CollectionSpaceRequestWrapper.class);
 
-	private static final String USERNAME = "reader@materials.collectionspace.org";
-	private static final String PASSWORD = "reader";
+	private String username;
+	private String password;
 
-	public CollectionSpaceRequestWrapper(HttpServletRequest request) {
+	public CollectionSpaceRequestWrapper(HttpServletRequest request, String username, String password) {
 		super(request);
+
+		this.username = username;
+		this.password = password;
 	}
 
   @Override
@@ -56,7 +59,7 @@ public class CollectionSpaceRequestWrapper extends HttpServletRequestWrapper {
 	}
 
 	private String getAuthHeader() {
-		String encoding = Base64.getEncoder().encodeToString((USERNAME + ":" + PASSWORD).getBytes());
+		String encoding = Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
 
 		return "Basic " + encoding;
 	}
