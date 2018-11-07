@@ -3,6 +3,7 @@ package org.collectionspace.publicbrowser.elasticsearch;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingIterator;
@@ -25,55 +26,82 @@ public class QueryModifier {
 		.set("bool", mapper.createObjectNode()
 			.set("must", mapper.createArrayNode()
 				.add(mapper.createObjectNode()
-					.set("term", mapper.createObjectNode()
-						.put("ecm:primaryType", "CollectionObjectTenant5000")
+					.set("not", mapper.createObjectNode()
+						.set("filter", mapper.createObjectNode()
+							.set("term", mapper.createObjectNode()
+								.put("ecm:currentLifeCycleState", "deleted")
+							)
+						)
 					)
 				)
 				.add(mapper.createObjectNode()
-					.set("term", mapper.createObjectNode()
-						.put("ecm:currentLifeCycleState", "project")
+					.set("bool", mapper.createObjectNode()
+						.set("should", mapper.createArrayNode()
+							.add(mapper.createObjectNode()
+								.set("term", mapper.createObjectNode()
+									.put("ecm:primaryType", "Materialitem")
+								)
+							)
+							.add(mapper.createObjectNode()
+								.set("term", mapper.createObjectNode()
+									.put("ecm:primaryType", "CollectionObject")
+								)
+							)
+						)
 					)
 				)
-				.add(mapper.createObjectNode()
-					.set("term", mapper.createObjectNode()
-						.put("collectionobjects_common:publishToList", "urn:cspace:publicart.collectionspace.org:vocabularies:name(publishto):item:name(paa)'Public Art Archive'")
-					)
-				)
+
+				// .add(mapper.createObjectNode()
+				// 	.set("term", mapper.createObjectNode()
+				// 		.put("collectionobjects_common:publishToList", "urn:cspace:publicart.collectionspace.org:vocabularies:name(publishto):item:name(paa)'Public Art Archive'")
+				// 	)
+				// )
 			)
 		);
 
-	public static JsonNode modifyQuery(JsonNode query) {
-		JsonNode queryValue = query.get("query");
+	// private static JsonNode defaultSourceFields = mapper.createObjectNode()
+	// 	.set("bool", mapper.createObjectNode()
+	// 		.set("excludes", mapper.createArrayNode()
+	// 			.add("ecm:*")
+	// 			.add("dc:*")
+	// 			.add("common:*")
+	// 		)
+	// 	);
 
+	private static JsonNode getFilteredQuery(JsonNode query) {
 		// Transform a geo_bounding_box query to a filter (to support es 1.7).
 
-		JsonNode geoBoundingBox = queryValue.path("bool").path("must").path(1).path("geo_bounding_box");
-		JsonNode geoBoundingBoxQuery = null;
+		// JsonNode geoBoundingBox = query.path("bool").path("must").path(1).path("geo_bounding_box");
+		// JsonNode geoBoundingBoxQuery = null;
 
-		if (!geoBoundingBox.isMissingNode()) {
-			ArrayNode mustNode = (ArrayNode) queryValue.get("bool").get("must");
+		// if (!geoBoundingBox.isMissingNode()) {
+		// 	ArrayNode mustNode = (ArrayNode) query.get("bool").get("must");
 
-			geoBoundingBoxQuery = mustNode.path(1);
+		// 	geoBoundingBoxQuery = mustNode.path(1);
 
-			mustNode.remove(1);
-		}
+		// 	mustNode.remove(1);
+		// }
 
 		// Ugh. https://github.com/FasterXML/jackson-databind/issues/212
 
 		ObjectNode filteredNode = mapper.createObjectNode();
-		JsonNode filter = defaultFilter.deepCopy();
+		JsonNode filter = defaultFilter; // .deepCopy();
 
-		if (geoBoundingBoxQuery != null) {
-			((ArrayNode) filter.get("bool").get("must")).add(geoBoundingBoxQuery);
-		}
+		// if (geoBoundingBoxQuery != null) {
+		// 	((ArrayNode) filter.get("bool").get("must")).add(geoBoundingBoxQuery);
+		// }
 
-		filteredNode.set("query", queryValue);
+		filteredNode.set("query", query);
 		filteredNode.set("filter", filter);
 
-		return ((ObjectNode) query)
-			.set("query", mapper.createObjectNode()
-				.set("filtered", filteredNode)
-			);
+		return mapper.createObjectNode()
+			.set("filtered", filteredNode);
+	}
+
+	public static JsonNode modifyQuery(ObjectNode query) {
+		query.set("query", getFilteredQuery(query.get("query")));
+
+		return query;
 	}
 
 	public static String modifyRequestContent(String content, String contentType) throws IOException {
@@ -81,7 +109,7 @@ public class QueryModifier {
 
 		if (contentType.equals("application/json")) {
 			JsonNode query = reader.readValue(content);
-			JsonNode modifiedQuery = modifyQuery(query);
+			JsonNode modifiedQuery = modifyQuery((ObjectNode) query);
 
 			return mapper.writeValueAsString(modifiedQuery);
 		}
@@ -95,7 +123,7 @@ public class QueryModifier {
 			while (iterator.hasNext()) {
 				JsonNode header = iterator.next();
 				JsonNode query = iterator.next();
-				JsonNode modifiedQuery = modifyQuery(query);
+				JsonNode modifiedQuery = modifyQuery((ObjectNode) query);
 
 				printWriter.println(mapper.writeValueAsString(header));
 				printWriter.println(mapper.writeValueAsString(modifiedQuery));
