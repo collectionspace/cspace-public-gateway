@@ -5,13 +5,18 @@ import com.netflix.zuul.ZuulFilter;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.collectionspace.publicbrowser.elasticsearch.QueryModifier;
 import org.collectionspace.publicbrowser.request.ElasticsearchRequestWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.netflix.zuul.filters.support.FilterConstants;
 
 public class ElasticsearchQueryFilter extends ZuulFilter {
 	private static Logger log = LoggerFactory.getLogger(ElasticsearchQueryFilter.class);
+
+	@Autowired
+	private QueryModifier queryModifier;
 
 	@Override
 	public String filterType() {
@@ -30,7 +35,7 @@ public class ElasticsearchQueryFilter extends ZuulFilter {
 		String[] servletPathParts = servletPath.split("/", 3);
 		String root = servletPathParts[1];
 
-		return (root.equals("es") && request.getMethod().equalsIgnoreCase("POST"));
+		return root.equals("es");
 	}
 
 	@Override
@@ -38,12 +43,45 @@ public class ElasticsearchQueryFilter extends ZuulFilter {
 		RequestContext context = RequestContext.getCurrentContext();
 		HttpServletRequest request = context.getRequest();
 
+		String servletPath = request.getServletPath();
+		String[] servletPathParts = servletPath.split("/");
+		String apiName = servletPathParts[servletPathParts.length - 1];
+
 		log.info(String.format("%s to %s", request.getMethod(), request.getRequestURL().toString()));
 
-		try {
-			context.setRequest(new ElasticsearchRequestWrapper(request));
-		} catch (Exception e) {
-			context.setThrowable((e));
+		boolean isBlocked = true;
+
+		// Allow access to search, multi search, and count APIs.
+		// Only allow POST requests for now. To support GET, the query string query would need to be
+		// modified. Currently, only JSON request bodies are modified.
+
+		if (
+			request.getMethod().equalsIgnoreCase("POST") && 
+			(
+				apiName.equals("_search") ||
+				apiName.equals("_msearch") ||
+				apiName.equals("_count")
+			)
+		) {
+			isBlocked = false;
+
+			try {
+				context.setRequest(new ElasticsearchRequestWrapper(request, queryModifier));
+			} catch (Exception e) {
+				context.setThrowable((e));
+			}	
+		}
+
+		if (isBlocked) {
+			log.info("Blocking request");
+
+			try {
+				context.getResponse().sendError(404);
+			} catch (Exception e) {
+				context.setThrowable((e));
+			}
+
+			context.setSendZuulResponse(false);
 		}
 
 		return null;

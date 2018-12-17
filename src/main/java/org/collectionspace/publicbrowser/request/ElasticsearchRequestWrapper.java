@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.collectionspace.publicbrowser.elasticsearch.QueryModifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.util.StreamUtils;
 
 public class ElasticsearchRequestWrapper extends HttpServletRequestWrapper {
@@ -23,7 +22,7 @@ public class ElasticsearchRequestWrapper extends HttpServletRequestWrapper {
 
 	private byte[] content;
 
-	public ElasticsearchRequestWrapper(HttpServletRequest request) throws IOException {
+	public ElasticsearchRequestWrapper(HttpServletRequest request, QueryModifier queryModifier) throws IOException {
 		super(request);
 
 		String contentType = request.getContentType();
@@ -31,7 +30,7 @@ public class ElasticsearchRequestWrapper extends HttpServletRequestWrapper {
 
 		this.content = (content == null)
 			? new byte[0]
-			: QueryModifier.modifyRequestContent(content, contentType).getBytes();
+			: queryModifier.modifyRequestContent(content, contentType).getBytes();
 	}
 
 	@Override

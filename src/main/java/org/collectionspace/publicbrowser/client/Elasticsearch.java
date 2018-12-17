@@ -9,8 +9,11 @@ import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
 
 public interface Elasticsearch {
+	@RequestLine("GET /_count")
+	CountResult count(@QueryMap Map<String, Object> queryMap);
+
 	@RequestLine("GET /_search")
-	Result search(@QueryMap Map<String, Object> queryMap);
+	SearchResult search(@QueryMap Map<String, Object> queryMap);
 
 	static Elasticsearch connect(String url) {
 		return Feign.builder()
@@ -23,7 +26,19 @@ public interface Elasticsearch {
 
 	}
 
-	public static class Result {
+	public static class CountResult {
+		private int count;
+
+		public int getCount() {
+			return count;
+		}
+
+		public void setCount(int count) {
+			this.count = count;
+		}
+	}
+
+	public static class SearchResult {
 		private Hits hits;
 
 		public Hits getHits() {

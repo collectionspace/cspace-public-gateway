@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.StringUtils;
 import org.collectionspace.publicbrowser.client.Elasticsearch;
 import org.collectionspace.publicbrowser.request.CollectionSpaceRequestWrapper;
 import org.slf4j.Logger;
@@ -20,7 +21,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class CollectionSpaceQueryFilter extends ZuulFilter {
 	private static Logger log = LoggerFactory.getLogger(CollectionSpaceQueryFilter.class);
+	
 	private Elasticsearch es;
+	private String mediaPublishedQuery;
 
 	@Autowired
 	private Environment environment;
@@ -111,7 +114,7 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 
 		Map<String, Object> query= new HashMap<String, Object>();
 
-		String mediaPublishedQuery = environment.getProperty("es.mediaPublishedQuery");
+		String mediaPublishedQuery = getMediaPublishedQuery();
 
 		if (mediaPublishedQuery != null && mediaPublishedQuery.length() > 0) {
 			mediaPublishedQuery = "AND (" + mediaPublishedQuery + ")";
@@ -119,14 +122,12 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 
 		String q = String.format("((ecm\\:name:%s) AND (ecm\\:primaryType:Media) AND (NOT(ecm\\:currentLifeCycleState:deleted)) %s)", mediaCsid.replace("-", "\\-"), mediaPublishedQuery);
 
-		log.info(String.format("Query: %s", q));
+		log.debug(String.format("Query: %s", q));
 
 		query.put("q", q);
-		query.put("_source", "false");
-		query.put("size", "0");
 
-		Elasticsearch.Result result = this.es.search(query);
-		int count = result.getHits().getTotal();
+		Elasticsearch.CountResult result = this.es.count(query);
+		int count = result.getCount();
 
 		if (count < 1) {
 			log.warn(String.format("No published media found for csid %s", mediaCsid));
@@ -135,5 +136,22 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 		}
 
 		return true;
+	}
+
+	private String getMediaPublishedQuery() {
+		if (mediaPublishedQuery == null) {
+			String publishToField = environment.getProperty("es.recordTypes.Media.publishToField");
+			String[] publishToValues = environment.getProperty("es.allowedPublishToValues", String[].class);
+
+			if (publishToField != null && publishToValues != null) {
+				publishToField = publishToField.replace(":", "\\:");
+
+				String values = "(" + StringUtils.join(publishToValues, " OR ") + ")";
+
+				mediaPublishedQuery = publishToField + ":" + values;
+			}
+		}
+
+		return mediaPublishedQuery;
 	}
 }

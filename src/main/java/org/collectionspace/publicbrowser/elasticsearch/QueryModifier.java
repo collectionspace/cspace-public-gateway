@@ -3,7 +3,6 @@ package org.collectionspace.publicbrowser.elasticsearch;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingIterator;
@@ -14,50 +13,116 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.stereotype.Component;
 
+@Component
+@Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class QueryModifier {
 	private static Logger log = LoggerFactory.getLogger(QueryModifier.class);
-	private static ObjectMapper mapper = new ObjectMapper();
-	private static ObjectReader reader = mapper.readerFor(JsonNode.class);
 
-	// TODO: Make configurable
-	// TODO: Filter fields returned
-	private static JsonNode defaultFilter = mapper.createObjectNode()
-		.set("bool", mapper.createObjectNode()
-			.set("must", mapper.createArrayNode()
-				.add(mapper.createObjectNode()
-					.set("not", mapper.createObjectNode()
-						.set("filter", mapper.createObjectNode()
-							.set("term", mapper.createObjectNode()
-								.put("ecm:currentLifeCycleState", "deleted")
-							)
+	private ObjectMapper mapper;
+	private ObjectReader reader;
+	private JsonNode defaultFilter;
+
+	@Autowired
+	private Environment environment;
+
+	public QueryModifier() {
+		mapper = new ObjectMapper();
+		reader = mapper.readerFor(JsonNode.class);
+	}
+
+	private JsonNode createDefaultFilter() {
+		// TODO: Filter fields returned
+
+		JsonNode lifecycleStateFilterNode = mapper.createObjectNode()
+			.set("not", mapper.createObjectNode()
+				.set("filter", mapper.createObjectNode()
+					.set("term", mapper.createObjectNode()
+						.put("ecm:currentLifeCycleState", "deleted")
+					)
+				)
+			);
+		
+		JsonNode recordTypesFilterNode = createRecordTypesFilterNode();
+
+		if (recordTypesFilterNode == null) {
+			return lifecycleStateFilterNode;
+		}
+
+		JsonNode filterNode = mapper.createObjectNode()
+			.set("bool", mapper.createObjectNode()
+				.set("must", mapper.createArrayNode()
+					.add(lifecycleStateFilterNode)
+					.add(recordTypesFilterNode)
+				)
+			);
+
+		return filterNode;
+	}
+
+	private JsonNode createRecordTypesFilterNode() {
+		String[] allowedRecordTypes = environment.getProperty("es.allowedRecordTypes", String[].class);
+
+		if (allowedRecordTypes == null || allowedRecordTypes.length == 0) {
+			return null;
+		}
+
+		if (allowedRecordTypes.length == 1) {
+			return createRecordTypeFilterNode(allowedRecordTypes[0]);
+		}
+		
+		ArrayNode filtersNode = mapper.createArrayNode();
+
+		for (String allowedRecordType : allowedRecordTypes) {
+			filtersNode.add(createRecordTypeFilterNode(allowedRecordType));
+		}	
+
+		return mapper.createObjectNode()
+			.set("bool", mapper.createObjectNode()
+				.set("should", filtersNode)
+			);
+	}
+
+	private JsonNode createRecordTypeFilterNode(String recordType) {
+		String publishToField = environment.getProperty("es.recordTypes." + recordType + ".publishToField");
+
+		return mapper.createObjectNode()
+			.set("bool", mapper.createObjectNode()
+				.set("must", mapper.createArrayNode()
+					.add(mapper.createObjectNode()
+						.set("term", mapper.createObjectNode()
+							.put("ecm:primaryType", recordType)
+						)
+					)
+					.add(mapper.createObjectNode()
+						.set("terms", mapper.createObjectNode()
+							.set(publishToField, createPublishToValuesNode())
 						)
 					)
 				)
-				.add(mapper.createObjectNode()
-					.set("bool", mapper.createObjectNode()
-						.set("should", mapper.createArrayNode()
-							.add(mapper.createObjectNode()
-								.set("term", mapper.createObjectNode()
-									.put("ecm:primaryType", "Materialitem")
-								)
-							)
-							.add(mapper.createObjectNode()
-								.set("term", mapper.createObjectNode()
-									.put("ecm:primaryType", "CollectionObject")
-								)
-							)
-						)
-					)
-				)
+			);
+	}
 
-				// .add(mapper.createObjectNode()
-				// 	.set("term", mapper.createObjectNode()
-				// 		.put("collectionobjects_common:publishToList", "urn:cspace:publicart.collectionspace.org:vocabularies:name(publishto):item:name(paa)'Public Art Archive'")
-				// 	)
-				// )
-			)
-		);
+	private ArrayNode createPublishToValuesNode() {
+		String[] publishToValues = environment.getProperty("es.allowedPublishToValues", String[].class);
+
+		if (publishToValues == null) {
+			return null;
+		}
+
+		ArrayNode arrayNode = mapper.createArrayNode();
+
+		for (String publishToValue : publishToValues) {
+			arrayNode.add(publishToValue);
+		}
+
+		return arrayNode;
+	}
 
 	// private static JsonNode defaultSourceFields = mapper.createObjectNode()
 	// 	.set("bool", mapper.createObjectNode()
@@ -68,7 +133,7 @@ public class QueryModifier {
 	// 		)
 	// 	);
 
-	private static JsonNode getFilteredQuery(JsonNode query) {
+	private JsonNode getFilteredQuery(JsonNode query) {
 		// Transform a geo_bounding_box query to a filter (to support es 1.7).
 
 		// JsonNode geoBoundingBox = query.path("bool").path("must").path(1).path("geo_bounding_box");
@@ -85,7 +150,7 @@ public class QueryModifier {
 		// Ugh. https://github.com/FasterXML/jackson-databind/issues/212
 
 		ObjectNode filteredNode = mapper.createObjectNode();
-		JsonNode filter = defaultFilter; // .deepCopy();
+		JsonNode filter = getDefaultFilter(); // .deepCopy();
 
 		// if (geoBoundingBoxQuery != null) {
 		// 	((ArrayNode) filter.get("bool").get("must")).add(geoBoundingBoxQuery);
@@ -98,13 +163,13 @@ public class QueryModifier {
 			.set("filtered", filteredNode);
 	}
 
-	public static JsonNode modifyQuery(ObjectNode query) {
+	public JsonNode modifyQuery(ObjectNode query) {
 		query.set("query", getFilteredQuery(query.get("query")));
 
 		return query;
 	}
 
-	public static String modifyRequestContent(String content, String contentType) throws IOException {
+	public String modifyRequestContent(String content, String contentType) throws IOException {
 		log.info(String.format("Request of type %s: %s", contentType, content));
 
 		if (contentType.equals("application/json")) {
@@ -135,5 +200,21 @@ public class QueryModifier {
 		}
 
 		throw new IOException(String.format("Unknown content type %s", contentType));
+	}
+
+	private JsonNode getDefaultFilter() {
+		if (defaultFilter == null) {
+			defaultFilter = createDefaultFilter();
+		}
+
+		return defaultFilter;
+	}
+
+	public Environment getEnvironment() {
+		return environment;
+	}
+
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
 	}
 }

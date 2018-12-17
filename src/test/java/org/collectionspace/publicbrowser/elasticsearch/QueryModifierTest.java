@@ -3,11 +3,25 @@ package org.collectionspace.publicbrowser.elasticsearch;
 import java.io.IOException;
 
 import org.junit.*;
+import org.springframework.mock.env.MockEnvironment;
 
 // TODO: Flesh out these tests.
 public class QueryModifierTest {
+	private QueryModifier queryModifier;
+
+	public QueryModifierTest() {
+		queryModifier = new QueryModifier();
+		
+		MockEnvironment environment = new MockEnvironment();
+		environment.setProperty("es.allowedPublishToValues", "all");
+		environment.setProperty("es.allowedRecordTypes", "CollectionObject");
+		environment.setProperty("es.recordTypes.CollectionObject.publishToField", "collectionobjects_common:publishToList");
+
+		queryModifier.setEnvironment(environment);
+	}
+
 	private void testMultiSearchQuery(String query) throws IOException {
-		String result = QueryModifier.modifyRequestContent(query, "application/x-ndjson");
+		String result = queryModifier.modifyRequestContent(query, "application/x-ndjson");
 		System.out.println("result: " + result);
 	}
 
