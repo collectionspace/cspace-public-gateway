@@ -24,3 +24,26 @@ To configure the application, including the port on which it listens, supply ext
 The available properties are listed in the default [application.properties](./src/main/resources/application.properties) file.
 
 To run the application as a service using init.d or systemd, follow the [Spring Boot installation instructions](https://docs.spring.io/spring-boot/docs/current/reference/html/deployment-install.html).
+
+## Docker
+
+To build and test locally:
+
+```bash
+docker build -t cspace-public-gateway .
+docker run --rm -it -p 8181:8181 cspace-public-gateway
+
+# to use a different port
+docker run --rm -it -p 8282:8282 \
+  -e SERVER_PORT=8282 \
+  cspace-public-gateway
+
+# with configuration via environment variables
+docker run --rm -it -p 8181:8181 \
+  -e ES_INDEX=nuxeo \
+  -e ZUUL_ROUTES_CSPACE-SERVICES_PASSWORD=reader \
+  -e ZUUL_ROUTES_CSPACE-SERVICES_URL=https://core.collectionspace.org/cspace-services \
+  -e ZUUL_ROUTES_CSPACE-SERVICES_USERNAME=reader@core.collectionspace.org \
+  -e ZUUL_ROUTES_ES_URL=$ES_DOMAIN_ENDPOINT \
+  cspace-public-gateway
+```
