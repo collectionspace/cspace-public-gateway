@@ -4,26 +4,50 @@ A (prototype) gateway server for accessing public CollectionSpace data. This ser
 
 ## Building
 
-```
-$ git clone https://github.com/collectionspace/cspace-public-gateway.git
-$ cd cspace-public-gateway
-$ mvn clean install
+The program may be built as a jar containing an embedded tomcat server, or as a war to be installed in a CollectionSpace tomcat server.
+
+### To build as a jar:
+
+```bash
+git clone https://github.com/collectionspace/cspace-public-gateway.git
+cd cspace-public-gateway
+mvn clean package
 ```
 
-This produces org.collectionspace.publicbrowser-{version}.jar in the target directory. The jar file may be installed anywhere.
+This produces org.collectionspace.publicbrowser-{version}.jar in the target directory. The jar file may be copied to any server.
+
+### To build as a war:
+
+```bash
+git clone https://github.com/collectionspace/cspace-public-gateway.git
+cd cspace-public-gateway
+git checkout war
+mvn clean package
+```
+
+This produces org.collectionspace.publicbrowser-{version}.war in the target directory. The war file may be installed into a CollectionSpace tomcat server.
 
 ## Running
 
+### Running the jar:
+
 The jar includes an embedded Tomcat server.
 
-```
-$ java -jar org.collectionspace.publicbrowser-{version}.jar
+```bash
+java -jar org.collectionspace.publicbrowser-{version}.jar
 ```
 
 To configure the application, including the port on which it listens, supply external properties using one of the [configuration methods supported by Spring Boot](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html).
 The available properties are listed in the default [application.properties](./src/main/resources/application.properties) file.
 
 To run the application as a service using init.d or systemd, follow the [Spring Boot installation instructions](https://docs.spring.io/spring-boot/docs/current/reference/html/deployment-install.html).
+
+### Running the war:
+
+Copy the war into the webapps directory of a CollectionSpace tomcat server. The war is specifically packaged to run in the tomcat that is delivered as part of a standard CollectionSpace installation, and assumes the presence of libraries that are part of that installation. The application may not run in other tomcat installations.
+
+To configure the application, supply external properties using one of the [configuration methods supported by Spring Boot](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html).
+The available properties are listed in the default [application.properties](./src/main/resources/application.properties) file. Some properties (for example, port number) do not apply when the application is run in an external tomcat.
 
 ## Docker
 
