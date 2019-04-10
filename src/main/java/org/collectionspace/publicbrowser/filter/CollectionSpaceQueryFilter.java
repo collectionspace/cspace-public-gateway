@@ -16,12 +16,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.netflix.zuul.filters.support.FilterConstants;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 
-@Component
 public class CollectionSpaceQueryFilter extends ZuulFilter {
 	private static Logger log = LoggerFactory.getLogger(CollectionSpaceQueryFilter.class);
-	
+
 	private Elasticsearch es;
 	private String mediaPublishedQuery;
 
@@ -118,7 +116,7 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 
 		if (mediaPublishedQuery != null && mediaPublishedQuery.length() > 0) {
 			mediaPublishedQuery = "AND (" + mediaPublishedQuery + ")";
-		} 
+		}
 
 		String q = String.format("((ecm\\:name:%s) AND (ecm\\:primaryType:Media) AND (NOT(ecm\\:currentLifeCycleState:deleted)) %s)", mediaCsid.replace("-", "\\-"), mediaPublishedQuery);
 

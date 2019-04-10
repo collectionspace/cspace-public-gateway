@@ -60,7 +60,7 @@ public class Gateway {
 	}
 
 	@Bean
-	public FilterRegistrationBean corsFilter() {
+	public FilterRegistrationBean corsFilterRegistrationBean() {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		CorsConfiguration config = new CorsConfiguration();
 
