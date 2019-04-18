@@ -65,9 +65,9 @@ docker run --rm -it -p 8282:8282 \
 # with configuration via environment variables
 docker run --rm -it -p 8181:8181 \
   -e ES_INDEX=nuxeo \
-  -e ZUUL_ROUTES_CSPACE-SERVICES_PASSWORD=reader \
-  -e ZUUL_ROUTES_CSPACE-SERVICES_URL=https://core.collectionspace.org/cspace-services \
-  -e ZUUL_ROUTES_CSPACE-SERVICES_USERNAME=reader@core.collectionspace.org \
+  -e ZUUL_ROUTES_CSPACE_SERVICES_PASSWORD=reader \
+  -e ZUUL_ROUTES_CSPACE_SERVICES_URL=https://core.collectionspace.org/cspace-services \
+  -e ZUUL_ROUTES_CSPACE_SERVICES_USERNAME=reader@core.collectionspace.org \
   -e ZUUL_ROUTES_ES_URL=$ES_DOMAIN_ENDPOINT \
   cspace-public-gateway
 ```

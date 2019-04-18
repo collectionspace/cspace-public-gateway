@@ -69,17 +69,14 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 			String mediaCsid = servletPathParts.length > 3 ? servletPathParts[3] : "";
 
 			if (!mediaCsid.equals("") && isMediaPublished(mediaCsid)) {
-				String username = environment.getProperty("zuul.routes." + proxyId + ".username");
-				String password = environment.getProperty("zuul.routes." + proxyId + ".password");
-
-				try {
-					context.setRequest(new CollectionSpaceRequestWrapper(request, username, password));
-				} catch (Exception e) {
-					context.setThrowable((e));
-				}
-
+				setupRequest(context, proxyId, request);
 				isBlocked = false;
 			}
+		}
+
+		if (serviceName.equals("systeminfo")) {
+			setupRequest(context, proxyId, request);
+			isBlocked = false;
 		}
 
 		if (isBlocked) {
@@ -151,5 +148,16 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 		}
 
 		return mediaPublishedQuery;
+	}
+
+	private void setupRequest(RequestContext context, String proxyId, HttpServletRequest request) {
+		String username = environment.getProperty("zuul.routes." + proxyId + ".username");
+		String password = environment.getProperty("zuul.routes." + proxyId + ".password");
+
+		try {
+			context.setRequest(new CollectionSpaceRequestWrapper(request, username, password));
+		} catch (Exception e) {
+			context.setThrowable((e));
+		}
 	}
 }
