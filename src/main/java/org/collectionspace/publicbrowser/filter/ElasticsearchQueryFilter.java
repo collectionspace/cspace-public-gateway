@@ -56,7 +56,7 @@ public class ElasticsearchQueryFilter extends ZuulFilter {
 		// modified. Currently, only JSON request bodies are modified.
 
 		if (
-			request.getMethod().equalsIgnoreCase("POST") && 
+			request.getMethod().equalsIgnoreCase("POST") &&
 			(
 				apiName.equals("_search") ||
 				apiName.equals("_msearch") ||
@@ -69,7 +69,18 @@ public class ElasticsearchQueryFilter extends ZuulFilter {
 				context.setRequest(new ElasticsearchRequestWrapper(request, queryModifier));
 			} catch (Exception e) {
 				context.setThrowable((e));
-			}	
+			}
+		}
+
+		if (
+			request.getMethod().equalsIgnoreCase("GET") && apiName.equals("_count")
+		) {
+			isBlocked = false;
+			try {
+				context.setRequest(request);
+			} catch (Exception e) {
+				context.setThrowable((e));
+			}
 		}
 
 		if (isBlocked) {
