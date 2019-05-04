@@ -40,14 +40,14 @@ public class QueryModifier {
 		// TODO: Filter fields returned
 
 		JsonNode lifecycleStateFilterNode = mapper.createObjectNode()
-			.set("not", mapper.createObjectNode()
-				.set("filter", mapper.createObjectNode()
+			.set("bool", mapper.createObjectNode()
+				.set("mustNot", mapper.createObjectNode()
 					.set("term", mapper.createObjectNode()
 						.put("ecm:currentLifeCycleState", "deleted")
 					)
 				)
 			);
-		
+
 		JsonNode recordTypesFilterNode = createRecordTypesFilterNode();
 
 		if (recordTypesFilterNode == null) {
@@ -75,12 +75,12 @@ public class QueryModifier {
 		if (allowedRecordTypes.length == 1) {
 			return createRecordTypeFilterNode(allowedRecordTypes[0]);
 		}
-		
+
 		ArrayNode filtersNode = mapper.createArrayNode();
 
 		for (String allowedRecordType : allowedRecordTypes) {
 			filtersNode.add(createRecordTypeFilterNode(allowedRecordType));
-		}	
+		}
 
 		return mapper.createObjectNode()
 			.set("bool", mapper.createObjectNode()
@@ -149,18 +149,18 @@ public class QueryModifier {
 
 		// Ugh. https://github.com/FasterXML/jackson-databind/issues/212
 
-		ObjectNode filteredNode = mapper.createObjectNode();
+		ObjectNode boolNode = mapper.createObjectNode();
 		JsonNode filter = getDefaultFilter(); // .deepCopy();
 
 		// if (geoBoundingBoxQuery != null) {
 		// 	((ArrayNode) filter.get("bool").get("must")).add(geoBoundingBoxQuery);
 		// }
 
-		filteredNode.set("query", query);
-		filteredNode.set("filter", filter);
+		boolNode.set("must", query);
+		boolNode.set("filter", filter);
 
 		return mapper.createObjectNode()
-			.set("filtered", filteredNode);
+			.set("bool", boolNode);
 	}
 
 	public JsonNode modifyQuery(ObjectNode query) {
