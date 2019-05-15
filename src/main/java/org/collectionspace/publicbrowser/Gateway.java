@@ -63,22 +63,22 @@ public class Gateway extends SpringBootServletInitializer {
 		return new CollectionSpaceQueryFilter();
 	}
 
-	@Bean
-	public FilterRegistrationBean corsFilterRegistrationBean() {
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		CorsConfiguration config = new CorsConfiguration();
+	// @Bean
+	// public FilterRegistrationBean corsFilterRegistrationBean() {
+	// 	UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+	// 	CorsConfiguration config = new CorsConfiguration();
 
-		config.setAllowCredentials(true);
-		config.addAllowedOrigin("*");
-		config.addAllowedHeader("*");
-		config.addAllowedMethod("*");
+	// 	config.setAllowCredentials(true);
+	// 	config.addAllowedOrigin("*");
+	// 	config.addAllowedHeader("*");
+	// 	config.addAllowedMethod("*");
 
-		source.registerCorsConfiguration("/**", config);
+	// 	source.registerCorsConfiguration("/**", config);
 
-		FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
+	// 	FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
 
-		bean.setOrder(0);
+	// 	bean.setOrder(0);
 
-		return bean;
-	}
+	// 	return bean;
+	// }
 }
