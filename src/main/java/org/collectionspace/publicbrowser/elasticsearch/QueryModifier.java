@@ -196,7 +196,11 @@ public class QueryModifier {
 
 			printWriter.close();
 
-			return stringWriter.toString();
+			String modifiedContent = stringWriter.toString();
+
+			log.info(String.format("Modified content: %s", stringWriter.toString()));
+
+			return modifiedContent;
 		}
 
 		throw new IOException(String.format("Unknown content type %s", contentType));
