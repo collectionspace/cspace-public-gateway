@@ -1,5 +1,6 @@
 package org.collectionspace.publicbrowser.filter;
 
+import com.netflix.util.Pair;
 import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.ZuulFilter;
 
@@ -70,6 +71,9 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 
 			if (!mediaCsid.equals("") && isMediaPublished(mediaCsid)) {
 				setupRequest(context, proxyId, request);
+
+				context.getZuulResponseHeaders().add(new Pair("Cache-Control", "max-age=2419200"));
+
 				isBlocked = false;
 			}
 		}
