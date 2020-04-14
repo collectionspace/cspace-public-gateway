@@ -11,7 +11,7 @@ The program may be built as a jar containing an embedded tomcat server, or as a 
 ```bash
 git clone https://github.com/collectionspace/cspace-public-gateway.git
 cd cspace-public-gateway
-mvn clean package
+mvn clean package -Dpackaging=jar
 ```
 
 This produces org.collectionspace.publicbrowser-{version}.jar in the target directory. The jar file may be copied to any server.
@@ -21,8 +21,7 @@ This produces org.collectionspace.publicbrowser-{version}.jar in the target dire
 ```bash
 git clone https://github.com/collectionspace/cspace-public-gateway.git
 cd cspace-public-gateway
-git checkout war
-mvn clean package
+mvn clean package [-Dpackaging=war]
 ```
 
 This produces org.collectionspace.publicbrowser-{version}.war in the target directory. The war file may be installed into a CollectionSpace tomcat server.
