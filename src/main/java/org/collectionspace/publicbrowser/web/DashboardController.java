@@ -19,6 +19,7 @@ public class DashboardController {
         "es.allowedRecordTypes",
         "es.index",
         "es.recordTypes.CollectionObject.publishToField",
+        "es.recordTypes.Media.publishToField",
         "zuul.routes.cspace-services.url",
         "zuul.routes.cspace-services.username",
         "zuul.routes.es.url",

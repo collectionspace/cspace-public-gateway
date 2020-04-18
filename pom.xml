@@ -68,6 +68,11 @@
 			<artifactId>feign-gson</artifactId>
 			<version>10.1.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>1.13</version>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
@@ -233,6 +238,11 @@
 					<dependency>
 						<groupId>org.slf4j</groupId>
 						<artifactId>slf4j-api</artifactId>
+						<scope>provided</scope>
+					</dependency>
+					<dependency>
+						<groupId>org.yaml</groupId>
+						<artifactId>snakeyaml</artifactId>
 						<scope>provided</scope>
 					</dependency>
 				</dependencies>
