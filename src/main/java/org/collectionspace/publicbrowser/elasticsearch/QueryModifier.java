@@ -13,17 +13,19 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-@Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class QueryModifier {
 	private static Logger log = LoggerFactory.getLogger(QueryModifier.class);
 
+	private String proxyId;
 	private ObjectMapper mapper;
 	private ObjectReader reader;
 	private JsonNode defaultFilter;
@@ -31,9 +33,10 @@ public class QueryModifier {
 	@Autowired
 	private Environment environment;
 
-	public QueryModifier() {
-		mapper = new ObjectMapper();
-		reader = mapper.readerFor(JsonNode.class);
+	public QueryModifier(String proxyId) {
+		this.proxyId = proxyId;
+		this.mapper = new ObjectMapper();
+		this.reader = mapper.readerFor(JsonNode.class);
 	}
 
 	private JsonNode createDefaultFilter() {
@@ -66,7 +69,7 @@ public class QueryModifier {
 	}
 
 	private JsonNode createRecordTypesFilterNode() {
-		String[] allowedRecordTypes = environment.getProperty("es.allowedRecordTypes", String[].class);
+		String[] allowedRecordTypes = environment.getProperty("zuul.routes." + proxyId + ".allowedRecordTypes", String[].class);
 
 		if (allowedRecordTypes == null || allowedRecordTypes.length == 0) {
 			return null;
@@ -89,7 +92,7 @@ public class QueryModifier {
 	}
 
 	private JsonNode createRecordTypeFilterNode(String recordType) {
-		String publishToField = environment.getProperty("es.recordTypes." + recordType + ".publishToField");
+		String publishToField = environment.getProperty("zuul.routes." + proxyId + ".recordTypes." + recordType + ".publishToField");
 
 		return mapper.createObjectNode()
 			.set("bool", mapper.createObjectNode()
@@ -109,7 +112,7 @@ public class QueryModifier {
 	}
 
 	private ArrayNode createPublishToValuesNode() {
-		String[] publishToValues = environment.getProperty("es.allowedPublishToValues", String[].class);
+		String[] publishToValues = environment.getProperty("zuul.routes." + proxyId + ".allowedPublishToValues", String[].class);
 
 		if (publishToValues == null) {
 			return null;

@@ -7,21 +7,25 @@ import org.springframework.mock.env.MockEnvironment;
 
 // TODO: Flesh out these tests.
 public class QueryModifierTest {
+	private static final String TENANT_ID = "core";
+	private static final String PROXY_ID = TENANT_ID + "-es";
+
 	private QueryModifier queryModifier;
 
 	public QueryModifierTest() {
-		queryModifier = new QueryModifier();
-		
+		queryModifier = new QueryModifier(PROXY_ID);
+
 		MockEnvironment environment = new MockEnvironment();
-		environment.setProperty("es.allowedPublishToValues", "all");
-		environment.setProperty("es.allowedRecordTypes", "CollectionObject");
-		environment.setProperty("es.recordTypes.CollectionObject.publishToField", "collectionobjects_common:publishToList");
+		environment.setProperty("zuul.routes." + PROXY_ID + ".allowedPublishToValues", "all");
+		environment.setProperty("zuul.routes." + PROXY_ID + ".allowedRecordTypes", "CollectionObject");
+		environment.setProperty("zuul.routes." + PROXY_ID + ".recordTypes.CollectionObject.publishToField", "collectionobjects_common:publishToList");
 
 		queryModifier.setEnvironment(environment);
 	}
 
 	private void testMultiSearchQuery(String query) throws IOException {
 		String result = queryModifier.modifyRequestContent(query, "application/x-ndjson");
+
 		System.out.println("result: " + result);
 	}
 

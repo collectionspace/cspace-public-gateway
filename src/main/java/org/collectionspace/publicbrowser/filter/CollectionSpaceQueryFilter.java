@@ -47,9 +47,9 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 		HttpServletRequest request = RequestContext.getCurrentContext().getRequest();
 		String servletPath = request.getServletPath();
 		String[] servletPathParts = servletPath.split("/", 4);
-		String root = servletPathParts[1];
+		String api = servletPathParts[2];
 
-		return root.equals("cspace-services");
+		return api.equals("cspace-services");
 	}
 
 	@Override
@@ -60,16 +60,16 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 
 		String servletPath = request.getServletPath();
 		String[] servletPathParts = servletPath.split("/", 5);
-		String serviceName = servletPathParts.length > 2 ? servletPathParts[2] : "";
+		String serviceName = servletPathParts.length > 3 ? servletPathParts[3] : "";
 
 		log.info(String.format("%s to %s at %s", request.getMethod(), proxyId, request.getRequestURL().toString()));
 
 		boolean isBlocked = true;
 
 		if (serviceName.equals("media")) {
-			String mediaCsid = servletPathParts.length > 3 ? servletPathParts[3] : "";
+			String mediaCsid = servletPathParts.length > 4 ? servletPathParts[4] : "";
 
-			if (!mediaCsid.equals("") && isMediaPublished(mediaCsid)) {
+			if (!mediaCsid.equals("") && isMediaPublished(proxyId, mediaCsid)) {
 				setupRequest(context, proxyId, request);
 
 				context.getZuulResponseHeaders().add(new Pair("Cache-Control", "max-age=2419200"));
@@ -98,12 +98,13 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 		return null;
 	}
 
-	private boolean isMediaPublished(String mediaCsid) {
+	private boolean isMediaPublished(String proxyId, String mediaCsid) {
 		log.info(String.format("Checking for published media with csid %s", mediaCsid));
 
 		if (this.es == null) {
-			String esBaseUrl = environment.getProperty("zuul.routes.es.url");
-			String esIndex = environment.getProperty("es.index");
+			String esProxyId = getEsProxyId(proxyId);
+			String esBaseUrl = environment.getProperty("zuul.routes." + esProxyId + ".url");
+			String esIndex = environment.getProperty("zuul.routes." + esProxyId + ".index");
 			String esUrl = esBaseUrl + "/" + esIndex;
 
 			log.info(String.format("Connecting to ES at %s", esUrl));
@@ -113,7 +114,7 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 
 		Map<String, Object> query= new HashMap<String, Object>();
 
-		String mediaPublishedQuery = getMediaPublishedQuery();
+		String mediaPublishedQuery = getMediaPublishedQuery(proxyId);
 
 		if (mediaPublishedQuery != null && mediaPublishedQuery.length() > 0) {
 			mediaPublishedQuery = "AND (" + mediaPublishedQuery + ")";
@@ -137,10 +138,12 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 		return true;
 	}
 
-	private String getMediaPublishedQuery() {
+	private String getMediaPublishedQuery(String proxyId) {
 		if (mediaPublishedQuery == null) {
-			String publishToField = environment.getProperty("es.recordTypes.Media.publishToField");
-			String[] publishToValues = environment.getProperty("es.allowedPublishToValues", String[].class);
+			String esProxyId = getEsProxyId(proxyId);
+
+			String publishToField = environment.getProperty("zuul.routes." + esProxyId + ".recordTypes.Media.publishToField");
+			String[] publishToValues = environment.getProperty("zuul.routes." + esProxyId + ".allowedPublishToValues", String[].class);
 
 			if (publishToField != null && publishToValues != null) {
 				publishToField = publishToField.replace(":", "\\:");
@@ -163,5 +166,12 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 		} catch (Exception e) {
 			context.setThrowable((e));
 		}
+	}
+
+	private String getEsProxyId(String proxyId) {
+		String tenantId = proxyId.substring(0, proxyId.indexOf("-"));
+		String esProxyId = tenantId + "-es";
+
+		return esProxyId;
 	}
 }

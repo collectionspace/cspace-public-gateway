@@ -23,45 +23,69 @@ server:
   #   port:
 
 zuul:
+  # By default authorization is a sensitive header that won't be passed downstream. Remove it, so
+  # we can send credentials.
+  sensitiveHeaders: Cookie,Set-Cookie
+
   routes:
-    cspace-services:
+    core-cspace-services:
+      path: /core/cspace-services/**
+
       # The URL of the CollectionSpace REST API.
       url: http://localhost:8180/cspace-services
-
-      # By default authorization is a sensitive header that won't be passed downstream. Remove it, so we can send credentials.
-      sensitiveHeaders: Cookie,Set-Cookie
 
       # Credentials to use for connecting to the CollectionSpace REST API.
       username: reader@core.collectionspace.org
       password: reader
 
-    es:
+    core-es:
+      path: /core/es/**
+
       # The URL of the Elasticsearch cluster.
       url: http://localhost:9200
 
-es:
-  # The name of the Elasticsearch index that contains the publicly accessible records.
-  index: nuxeo
+      # The name of the Elasticsearch index that contains the publicly accessible records.
+      index: nuxeo
 
-  # The names of CollectionSpace record types that are publicly accessible through Elasticsearch.
-  # This should be a comma-separated list of tenant-unqualified record types. If no value is given,
-  # all record types will be publicly accessible.
-  allowedRecordTypes: CollectionObject
+      # The names of CollectionSpace record types that are publicly accessible through Elasticsearch.
+      # This should be a comma-separated list of tenant-unqualified record types. If no value is given,
+      # all record types will be publicly accessible.
+      allowedRecordTypes: CollectionObject
 
-  # For each publicly accessible record type, specify the name of the Elasticsearch field to check to
-  # see if a specific record is published, and should be publicly accessible. Each record type
-  # specified in es.allowedRecordTypes should have a publishToField configured. Media records should
-  # also have a publishToField configured, even if Media is not specified in es.allowedRecordTypes.
-  # This allows the gateway to make an Elaticsearch query to check if a media record is published
-  # when an attempt is made to retrieve media through the REST API.
-  # Typically, values will have the format <schema>:<field name>.shortid
-  # If no value is given, all records of the type will be publicly accessible.
-  recordTypes:
-    CollectionObject:
-      publishToField: collectionobjects_common:publishToList.shortid
-    Media:
-      publishToField: media_common:publishToList.shortid
+      # For each publicly accessible record type, specify the name of the Elasticsearch field to check to
+      # see if a specific record is published, and should be publicly accessible. Each record type
+      # specified in es.allowedRecordTypes should have a publishToField configured. Media records should
+      # also have a publishToField configured, even if Media is not specified in es.allowedRecordTypes.
+      # This allows the gateway to make an Elaticsearch query to check if a media record is published
+      # when an attempt is made to retrieve media through the REST API.
+      # Typically, values will have the format <schema>:<field name>.shortid
+      # If no value is given, all records of the type will be publicly accessible.
+      recordTypes:
+        CollectionObject:
+          publishToField: collectionobjects_common:publishToList.shortid
+        Media:
+          publishToField: media_common:publishToList.shortid
 
-  # Values that may exist in the Publish To field for records that are publicly accessible.
-  # This should be a comma-separated list of short ids.
-  allowedPublishToValues: cspacepub,all
+      # Values that may exist in the Publish To field for records that are publicly accessible.
+      # This should be a comma-separated list of short ids.
+      allowedPublishToValues: cspacepub,all
+
+    materials-cspace-services:
+      path: /materials/cspace-services/**
+      url: http://localhost:8180/cspace-services
+      username: reader@materials.collectionspace.org
+      password: reader
+
+    materials-es:
+      path: /materials/es/**
+      url: http://localhost:9200
+      index: materials
+      allowedRecordTypes: CollectionObject,Materialitem
+      recordTypes:
+        CollectionObject:
+          publishToField: collectionobjects_common:publishToList.shortid
+        Materialitem:
+          publishToField: materials_common:publishToList.shortid
+        Media:
+          publishToField: media_materials:publishToList.shortid
+      allowedPublishToValues: materialorder,all

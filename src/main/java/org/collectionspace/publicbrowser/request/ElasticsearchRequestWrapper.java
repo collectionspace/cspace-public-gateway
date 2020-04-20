@@ -22,7 +22,7 @@ public class ElasticsearchRequestWrapper extends HttpServletRequestWrapper {
 
 	private byte[] content;
 
-	public ElasticsearchRequestWrapper(HttpServletRequest request, QueryModifier queryModifier) throws IOException {
+	public ElasticsearchRequestWrapper(String proxyId, HttpServletRequest request, QueryModifier queryModifier) throws IOException {
 		super(request);
 
 		String contentType = request.getContentType();

@@ -6,6 +6,7 @@ import com.netflix.zuul.ZuulFilter;
 import javax.servlet.http.HttpServletRequest;
 
 import org.collectionspace.publicbrowser.elasticsearch.QueryModifier;
+import org.collectionspace.publicbrowser.elasticsearch.QueryModifierFactory;
 import org.collectionspace.publicbrowser.request.ElasticsearchRequestWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,7 @@ public class ElasticsearchQueryFilter extends ZuulFilter {
 	private static Logger log = LoggerFactory.getLogger(ElasticsearchQueryFilter.class);
 
 	@Autowired
-	private QueryModifier queryModifier;
+	private QueryModifierFactory queryModifierFactory;
 
 	@Override
 	public String filterType() {
@@ -32,15 +33,16 @@ public class ElasticsearchQueryFilter extends ZuulFilter {
 	public boolean shouldFilter() {
 		HttpServletRequest request = RequestContext.getCurrentContext().getRequest();
 		String servletPath = request.getServletPath();
-		String[] servletPathParts = servletPath.split("/", 3);
-		String root = servletPathParts[1];
+		String[] servletPathParts = servletPath.split("/", 4);
+		String api = servletPathParts[2];
 
-		return root.equals("es");
+		return api.equals("es");
 	}
 
 	@Override
 	public Object run() {
 		RequestContext context = RequestContext.getCurrentContext();
+		String proxyId = (String) context.get(FilterConstants.PROXY_KEY);
 		HttpServletRequest request = context.getRequest();
 
 		String servletPath = request.getServletPath();
@@ -65,8 +67,10 @@ public class ElasticsearchQueryFilter extends ZuulFilter {
 		) {
 			isBlocked = false;
 
+			QueryModifier queryModifier = queryModifierFactory.createQueryModifier(proxyId);
+
 			try {
-				context.setRequest(new ElasticsearchRequestWrapper(request, queryModifier));
+				context.setRequest(new ElasticsearchRequestWrapper(proxyId, request, queryModifier));
 			} catch (Exception e) {
 				context.setThrowable((e));
 			}
