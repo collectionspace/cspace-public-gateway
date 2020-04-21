@@ -20,7 +20,10 @@ public class QueryModifierTest {
 		environment.setProperty("zuul.routes." + PROXY_ID + ".allowedRecordTypes", "CollectionObject");
 		environment.setProperty("zuul.routes." + PROXY_ID + ".recordTypes.CollectionObject.publishToField", "collectionobjects_common:publishToList");
 
-		queryModifier.setEnvironment(environment);
+		ESEnvironment esEnvironment = new ESEnvironment();
+		esEnvironment.setEnvironment(environment);
+
+		queryModifier.setEsEnvironment(esEnvironment);
 	}
 
 	private void testMultiSearchQuery(String query) throws IOException {

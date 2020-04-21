@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 import org.collectionspace.publicbrowser.client.Elasticsearch;
+import org.collectionspace.publicbrowser.elasticsearch.ESEnvironment;
 import org.collectionspace.publicbrowser.request.CollectionSpaceRequestWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,9 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 
 	@Autowired
 	private Environment environment;
+
+	@Autowired
+	private ESEnvironment esEnvironment;
 
 	@Override
 	public String filterType() {
@@ -142,8 +146,8 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 		if (mediaPublishedQuery == null) {
 			String esProxyId = getEsProxyId(proxyId);
 
-			String publishToField = environment.getProperty("zuul.routes." + esProxyId + ".recordTypes.Media.publishToField");
-			String[] publishToValues = environment.getProperty("zuul.routes." + esProxyId + ".allowedPublishToValues", String[].class);
+			String publishToField = esEnvironment.getProperty(esProxyId, "recordTypes.Media.publishToField");
+			String[] publishToValues = esEnvironment.getProperty(esProxyId, "allowedPublishToValues", String[].class);
 
 			if (publishToField != null && publishToValues != null) {
 				publishToField = publishToField.replace(":", "\\:");
@@ -173,5 +177,21 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 		String esProxyId = tenantId + "-es";
 
 		return esProxyId;
+	}
+
+	public Environment getEnvironment() {
+		return environment;
+	}
+
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
+	}
+
+	public ESEnvironment getEsEnvironment() {
+		return esEnvironment;
+	}
+
+	public void setEsEnvironment(ESEnvironment esEnvironment) {
+		this.esEnvironment = esEnvironment;
 	}
 }

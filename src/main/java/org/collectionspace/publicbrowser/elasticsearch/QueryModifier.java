@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,7 +30,7 @@ public class QueryModifier {
 	private JsonNode defaultFilter;
 
 	@Autowired
-	private Environment environment;
+	private ESEnvironment esEnvironment;
 
 	public QueryModifier(String proxyId) {
 		this.proxyId = proxyId;
@@ -69,7 +68,7 @@ public class QueryModifier {
 	}
 
 	private JsonNode createRecordTypesFilterNode() {
-		String[] allowedRecordTypes = environment.getProperty("zuul.routes." + proxyId + ".allowedRecordTypes", String[].class);
+		String[] allowedRecordTypes = esEnvironment.getProperty(proxyId, "allowedRecordTypes", String[].class);
 
 		if (allowedRecordTypes == null || allowedRecordTypes.length == 0) {
 			return null;
@@ -92,7 +91,7 @@ public class QueryModifier {
 	}
 
 	private JsonNode createRecordTypeFilterNode(String recordType) {
-		String publishToField = environment.getProperty("zuul.routes." + proxyId + ".recordTypes." + recordType + ".publishToField");
+		String publishToField = esEnvironment.getProperty(proxyId, "recordTypes." + recordType + ".publishToField");
 
 		return mapper.createObjectNode()
 			.set("bool", mapper.createObjectNode()
@@ -112,7 +111,7 @@ public class QueryModifier {
 	}
 
 	private ArrayNode createPublishToValuesNode() {
-		String[] publishToValues = environment.getProperty("zuul.routes." + proxyId + ".allowedPublishToValues", String[].class);
+		String[] publishToValues = esEnvironment.getProperty(proxyId, "allowedPublishToValues", String[].class);
 
 		if (publishToValues == null) {
 			return null;
@@ -213,11 +212,11 @@ public class QueryModifier {
 		return defaultFilter;
 	}
 
-	public Environment getEnvironment() {
-		return environment;
+	public ESEnvironment getEsEnvironment() {
+		return esEnvironment;
 	}
 
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
+	public void setEsEnvironment(ESEnvironment esEnvironment) {
+		this.esEnvironment = esEnvironment;
 	}
 }
