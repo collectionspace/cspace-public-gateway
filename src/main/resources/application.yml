@@ -53,44 +53,40 @@ zuul:
   # we can send credentials.
   sensitiveHeaders: Cookie,Set-Cookie
 
-  routes:
-    core-cspace-services:
-      path: /core/cspace-services/**
+  # routes:
+  #   core-cspace-services:
+  #     path: /core/cspace-services/**
 
-      # The URL of the CollectionSpace REST API.
-      url: http://localhost:8180/cspace-services
+  #     # The URL of the CollectionSpace REST API.
+  #     url: http://localhost:8180/cspace-services
 
-      # Credentials to use for connecting to the CollectionSpace REST API.
-      username: reader@core.collectionspace.org
-      password: reader
+  #     # Credentials to use for connecting to the CollectionSpace REST API.
+  #     username: reader@core.collectionspace.org
+  #     password: reader
 
-    core-es:
-      path: /core/es/**
+  #   core-es:
+  #     path: /core/es/**
 
-      # The URL of the Elasticsearch cluster.
-      url: http://localhost:9200
+  #     # The URL of the Elasticsearch cluster (including index).
+  #     url: http://localhost:9200/nuxeo
 
-      # The name of the Elasticsearch index that contains the publicly accessible records.
-      index: nuxeo
+  #   materials-cspace-services:
+  #     path: /materials/cspace-services/**
+  #     url: http://localhost:8180/cspace-services
+  #     username: reader@materials.collectionspace.org
+  #     password: reader
 
-    materials-cspace-services:
-      path: /materials/cspace-services/**
-      url: http://localhost:8180/cspace-services
-      username: reader@materials.collectionspace.org
-      password: reader
+  #   materials-es:
+  #     path: /materials/es/**
+  #     url: http://localhost:9200/materials
 
-    materials-es:
-      path: /materials/es/**
-      url: http://localhost:9200
-      index: materials
-
-      # Override default ES settings.
-      allowedRecordTypes: CollectionObject,Materialitem
-      recordTypes:
-        CollectionObject:
-          publishToField: collectionobjects_common:publishToList.shortid
-        Materialitem:
-          publishToField: materials_common:publishToList.shortid
-        Media:
-          publishToField: media_materials:publishToList.shortid
-      allowedPublishToValues: materialorder,all
+  #     # Override default ES settings.
+  #     allowedRecordTypes: CollectionObject,Materialitem
+  #     recordTypes:
+  #       CollectionObject:
+  #         publishToField: collectionobjects_common:publishToList.shortid
+  #       Materialitem:
+  #         publishToField: materials_common:publishToList.shortid
+  #       Media:
+  #         publishToField: media_materials:publishToList.shortid
+  #     allowedPublishToValues: materialorder,all

@@ -107,9 +107,7 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 
 		if (this.es == null) {
 			String esProxyId = getEsProxyId(proxyId);
-			String esBaseUrl = environment.getProperty("zuul.routes." + esProxyId + ".url");
-			String esIndex = environment.getProperty("zuul.routes." + esProxyId + ".index");
-			String esUrl = esBaseUrl + "/" + esIndex;
+			String esUrl = environment.getProperty("zuul.routes." + esProxyId + ".url");
 
 			log.info(String.format("Connecting to ES at %s", esUrl));
 
