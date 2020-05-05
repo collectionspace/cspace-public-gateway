@@ -63,7 +63,7 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 		HttpServletRequest request = context.getRequest();
 
 		String servletPath = request.getServletPath();
-		String[] servletPathParts = servletPath.split("/", 5);
+		String[] servletPathParts = servletPath.split("/", 6);
 		String serviceName = servletPathParts.length > 3 ? servletPathParts[3] : "";
 
 		log.info(String.format("%s to %s at %s", request.getMethod(), proxyId, request.getRequestURL().toString()));
