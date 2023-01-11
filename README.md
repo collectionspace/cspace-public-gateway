@@ -37,7 +37,7 @@ java -jar org.collectionspace.publicbrowser-{version}.jar
 ```
 
 To configure the application, including the port on which it listens, supply external properties using one of the [configuration methods supported by Spring Boot](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html).
-The available properties are listed in the default [application.properties](./src/main/resources/application.properties) file.
+The available properties are listed in the default [application.yml](./src/main/resources/application.yml) file.
 
 To run the application as a service using init.d or systemd, follow the [Spring Boot installation instructions](https://docs.spring.io/spring-boot/docs/current/reference/html/deployment-install.html).
 
@@ -46,7 +46,7 @@ To run the application as a service using init.d or systemd, follow the [Spring 
 Copy the war into the webapps directory of a CollectionSpace tomcat server. The war is specifically packaged to run in the tomcat that is delivered as part of a standard CollectionSpace installation, and assumes the presence of libraries that are part of that installation. The application may not run in other tomcat installations.
 
 To configure the application, supply external properties using one of the [configuration methods supported by Spring Boot](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html).
-The available properties are listed in the default [application.properties](./src/main/resources/application.properties) file. Some properties (for example, port number) do not apply when the application is run in an external tomcat.
+The available properties are listed in the default [application.yml](./src/main/resources/application.yml) file. Some properties (for example, port number) do not apply when the application is run in an external tomcat.
 
 ## Docker
 
