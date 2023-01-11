@@ -48,6 +48,11 @@ Copy the war into the webapps directory of a CollectionSpace tomcat server. The 
 To configure the application, supply external properties using one of the [configuration methods supported by Spring Boot](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html).
 The available properties are listed in the default [application.yml](./src/main/resources/application.yml) file. Some properties (for example, port number) do not apply when the application is run in an external tomcat.
 
+## Configuration
+
+You must configure routes to access the CollectionSpace Services REST API and the Elasticsearch API for your installation. An example is included in [application.yml](https://github.com/collectionspace/cspace-public-gateway/blob/0f1959d92a5bf98a0271b166d097d532cc3f2d71/src/main/resources/application.yml#L57-L72).
+
+
 ## Docker
 
 To build and test locally:
