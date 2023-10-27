@@ -49,11 +49,6 @@ es:
   allowedPublishToValues: cspacepub,all
 
 zuul:
-  # By default authorization is a sensitive header that won't be passed downstream. Remove it, so
-  # we can send credentials.
-  sensitiveHeaders: Cookie,Set-Cookie
-  ignoredHeaders: Access-Control-Allow-Credentials,Access-Control-Allow-Origin
-
   # routes:
   #   core-cspace-services:
   #     path: /core/cspace-services/**
