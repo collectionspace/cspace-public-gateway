@@ -4,7 +4,6 @@ import com.netflix.util.Pair;
 import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.ZuulFilter;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,7 +16,6 @@ import org.collectionspace.publicbrowser.request.CollectionSpaceRequestWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.netflix.zuul.filters.ProxyRequestHelper;
 import org.springframework.cloud.netflix.zuul.filters.support.FilterConstants;
 import org.springframework.core.env.Environment;
 
@@ -162,18 +160,6 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 	}
 
 	private void setupRequest(RequestContext context, String proxyId, HttpServletRequest request) {
-		if (context.containsKey(ProxyRequestHelper.IGNORED_HEADERS)) {
-			// Remove Authorization from ignored headers, so we can send the configured credentials.
-
-			Object object = context.get(ProxyRequestHelper.IGNORED_HEADERS);
-
-			if (object instanceof Collection) {
-				Collection<?> ignoredHeaders = (Collection<?>) object;
-
-				ignoredHeaders.remove("authorization");
-			}
-		}
-
 		String username = environment.getProperty("zuul.routes." + proxyId + ".username");
 		String password = environment.getProperty("zuul.routes." + proxyId + ".password");
 
