@@ -99,6 +99,7 @@
 	</dependencyManagement>
 
 	<build>
+		<finalName>org.collectionspace.publicbrowser</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
