@@ -35,8 +35,8 @@
                         <td th:text="${c.key}">key</td>
                         <td th:text="${c.value}">value</td>
                         <td>
-                            <a th:if="${#strings.contains(c.key, '-cspace-services.url')}" th:href="${c.value} + '/systeminfo'">system info</a>
-                            <a th:if="${#strings.contains(c.key, '-es.url')}" th:href="${c.value} + '/_count'">count</a>
+                            <a th:if="${#strings.contains(c.key, '-cspace-services.path')}" th:href="@{${#strings.replace(c.value, '**', 'systeminfo')}}">system info</a>
+                            <a th:if="${#strings.contains(c.key, '-es.path')}" th:href="@{${#strings.replace(c.value, '**', '_count')}}">count</a>
                         </td>
                     </tr>
                 </tbody>
