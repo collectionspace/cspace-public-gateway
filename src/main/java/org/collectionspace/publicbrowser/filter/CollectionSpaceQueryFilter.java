@@ -111,7 +111,7 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 			String esProxyId = getEsProxyId(proxyId);
 			String esUrl = environment.getProperty("zuul.routes." + esProxyId + ".url");
 
-			log.info(String.format("Connecting to ES at %s", esUrl));
+			log.warn(String.format("Connecting to ES at %s", esUrl));
 
 			this.es = Elasticsearch.connect(esUrl);
 		}
@@ -135,6 +135,7 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 
 		if (count < 1) {
 			log.warn(String.format("No published media found for csid %s", mediaCsid));
+			log.warn(String.format("Query: %s", q));
 
 			return false;
 		}
