@@ -3,6 +3,7 @@ package org.collectionspace.publicbrowser.elasticsearch;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Arrays;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingIterator;
@@ -71,7 +72,7 @@ public class QueryModifier {
 		String[] allowedRecordTypes = esEnvironment.getProperty(proxyId, "allowedRecordTypes", String[].class);
 
 		if (allowedRecordTypes == null || allowedRecordTypes.length == 0) {
-			return null;
+			allowedRecordTypes = new String[] {"CollectionObject"};
 		}
 
 		if (allowedRecordTypes.length == 1) {
@@ -91,29 +92,51 @@ public class QueryModifier {
 	}
 
 	private JsonNode createRecordTypeFilterNode(String recordType) {
-		String publishToField = esEnvironment.getProperty(proxyId, "recordTypes." + recordType + ".publishToField");
+		String propertyName = "recordTypes." + recordType + ".publishToField";
+		String publishToField = esEnvironment.getProperty(proxyId, propertyName);
+
+		if (publishToField == null) {
+			log.warn(
+				"Property {} not found for proxy id {}. Records of type {} may not be visible.",
+				propertyName, proxyId, recordType);
+
+			// Note: As of CollectionSpace 8.0, this field doesn't exist, so not specifying
+			// a publishToField effectively makes a record invisible through the gateway.
+
+			publishToField = "collectionspace_core:publishToList.shortid";
+		}
+
+		ArrayNode mustNode = mapper.createArrayNode()
+			.add(mapper.createObjectNode()
+				.set("term", mapper.createObjectNode()
+					.put("ecm:primaryType", recordType)
+				)
+			);
+
+		ArrayNode publishToValuesNode = createPublishToValuesNode();
+
+		if (publishToValuesNode != null) {
+			mustNode.add(mapper.createObjectNode()
+				.set("terms", mapper.createObjectNode()
+					.set(publishToField, publishToValuesNode)
+				)
+			);
+		}
 
 		return mapper.createObjectNode()
 			.set("bool", mapper.createObjectNode()
-				.set("must", mapper.createArrayNode()
-					.add(mapper.createObjectNode()
-						.set("term", mapper.createObjectNode()
-							.put("ecm:primaryType", recordType)
-						)
-					)
-					.add(mapper.createObjectNode()
-						.set("terms", mapper.createObjectNode()
-							.set(publishToField, createPublishToValuesNode())
-						)
-					)
-				)
+				.set("must", mustNode)
 			);
 	}
 
 	private ArrayNode createPublishToValuesNode() {
 		String[] publishToValues = esEnvironment.getProperty(proxyId, "allowedPublishToValues", String[].class);
 
-		if (publishToValues == null) {
+		if (publishToValues == null || publishToValues.length == 0) {
+			publishToValues = new String[] {"all"};
+		}
+
+		if (Arrays.stream(publishToValues).anyMatch("*"::equals)) {
 			return null;
 		}
 

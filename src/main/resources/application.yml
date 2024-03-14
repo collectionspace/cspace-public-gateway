@@ -27,7 +27,7 @@ server:
 es:
   # The names of CollectionSpace record types that are publicly accessible through Elasticsearch.
   # This should be a comma-separated list of tenant-unqualified record types. If no value is given,
-  # all record types will be publicly accessible.
+  # defaults to 'CollectionObject'.
   allowedRecordTypes: CollectionObject
 
   # For each publicly accessible record type, specify the name of the Elasticsearch field to check to
@@ -37,15 +37,18 @@ es:
   # This allows the gateway to make an Elaticsearch query to check if a media record is published
   # when an attempt is made to retrieve media through the REST API.
   # Typically, values will have the format <schema>:<field name>.shortid
-  # If no value is given, all records of the type will be publicly accessible.
+  # If no value is given, the record is effectively not publicly accessible (technically, the
+  # default value is 'collectionspace_core:publishToList.shortid', but that field currently does
+  # not exist, as of CSpace 8.0).
   recordTypes:
     CollectionObject:
       publishToField: collectionobjects_common:publishToList.shortid
     Media:
       publishToField: media_common:publishToList.shortid
 
-  # Values that may exist in the Publish To field for records that are publicly accessible.
-  # This should be a comma-separated list of short ids.
+  # Values that may exist in the Publish To field for records to be publicly accessible.
+  # This should be a comma-separated list of short ids. Use '*' if any value in the Publish To
+  # field is acceptable (including 'none'). Defaults to 'all' if not specified.
   allowedPublishToValues: cspacepub,all
 
 zuul:
