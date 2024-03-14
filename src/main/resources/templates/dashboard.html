@@ -18,18 +18,7 @@
             <p class="subtitle">Service Dashboard</p>
         </div>
     </section>
-    <section class="section">
-        <div class="container">
-            <div class="buttons">
-                <a class="button is-link is-outlined is-rounded" href="core/cspace-services/systeminfo">
-                    CollectionSpace System Information
-                </a>
-                <a class="button is-link is-outlined is-rounded" href="core/es/_count">
-                    Elasticsearch Index Information
-                </a>
-            </div>
-        </div>
-    </section>
+
     <section class="section">
         <div class="container">
             <h2 class="subtitle">Configuration</h2>
@@ -38,12 +27,17 @@
                     <tr>
                         <th>Property</th>
                         <th>Value</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="c : ${config}">
                         <td th:text="${c.key}">key</td>
                         <td th:text="${c.value}">value</td>
+                        <td>
+                            <a th:if="${#strings.contains(c.key, '-cspace-services.url')}" th:href="${c.value} + '/systeminfo'">system info</a>
+                            <a th:if="${#strings.contains(c.key, '-es.url')}" th:href="${c.value} + '/_count'">count</a>
+                        </td>
                     </tr>
                 </tbody>
             </table>
