@@ -25,7 +25,7 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 	private static Logger log = LoggerFactory.getLogger(CollectionSpaceQueryFilter.class);
 
 	private Map<String, Elasticsearch> esClients = new HashMap<>();
-	private String mediaPublishedQuery;
+	private Map<String, String> mediaPublishedQueries = new HashMap<>();
 
 	@Autowired
 	private Environment environment;
@@ -147,7 +147,12 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 	}
 
 	private String getMediaPublishedQuery(String proxyId) {
-		if (mediaPublishedQuery == null) {
+		String mediaPublishedQuery = null;
+
+		if (this.mediaPublishedQueries.containsKey(proxyId)) {
+			mediaPublishedQuery = this.mediaPublishedQueries.get(proxyId);
+		}
+		else  {
 			String esProxyId = getEsProxyId(proxyId);
 
 			String publishToField = esEnvironment.getProperty(esProxyId, "recordTypes.Media.publishToField");
@@ -160,6 +165,8 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 
 				mediaPublishedQuery = publishToField + ":" + values;
 			}
+
+			this.mediaPublishedQueries.put(proxyId, mediaPublishedQuery);
 		}
 
 		return mediaPublishedQuery;
