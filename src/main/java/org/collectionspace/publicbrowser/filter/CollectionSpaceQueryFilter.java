@@ -24,7 +24,7 @@ import org.springframework.core.env.Environment;
 public class CollectionSpaceQueryFilter extends ZuulFilter {
 	private static Logger log = LoggerFactory.getLogger(CollectionSpaceQueryFilter.class);
 
-	private Elasticsearch es;
+	private Map<String, Elasticsearch> esClients = new HashMap<>();
 	private String mediaPublishedQuery;
 
 	@Autowired
@@ -107,13 +107,15 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 	private boolean isMediaPublished(String proxyId, String mediaCsid) {
 		log.info(String.format("Checking for published media with csid %s", mediaCsid));
 
-		if (this.es == null) {
+		Elasticsearch es = this.esClients.get(proxyId);
+
+		if (es == null) {
 			String esProxyId = getEsProxyId(proxyId);
 			String esUrl = environment.getProperty("zuul.routes." + esProxyId + ".url");
 
-			log.warn(String.format("Connecting to ES at %s", esUrl));
+			es = Elasticsearch.connect(esUrl);
 
-			this.es = Elasticsearch.connect(esUrl);
+			this.esClients.put(proxyId, es);
 		}
 
 		Map<String, Object> query= new HashMap<String, Object>();
@@ -130,12 +132,11 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 
 		query.put("q", q);
 
-		Elasticsearch.CountResult result = this.es.count(query);
+		Elasticsearch.CountResult result = es.count(query);
 		int count = result.getCount();
 
 		if (count < 1) {
 			log.warn(String.format("No published media found for csid %s", mediaCsid));
-			log.warn(String.format("Query: %s", q));
 
 			return false;
 		}
