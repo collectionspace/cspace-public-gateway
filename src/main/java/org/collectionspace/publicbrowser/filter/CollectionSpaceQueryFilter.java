@@ -137,6 +137,8 @@ public class CollectionSpaceQueryFilter extends ZuulFilter {
 
 		if (count < 1) {
 			log.warn(String.format("No published media found for csid %s", mediaCsid));
+			log.warn(String.format("Proxy ID: %s", proxyId));
+			log.warn(String.format("Query: %s", q));
 
 			return false;
 		}
