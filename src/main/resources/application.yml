@@ -27,8 +27,9 @@ server:
 es:
   # The names of CollectionSpace record types that are publicly accessible through Elasticsearch.
   # This should be a comma-separated list of tenant-unqualified record types. If no value is given,
-  # defaults to 'CollectionObject'.
-  allowedRecordTypes: CollectionObject
+  # all record types will be publicly accessible.
+  # defaults to 'CollectionObject,Media'.
+  allowedRecordTypes: CollectionObject,Media
 
   # For each publicly accessible record type, specify the name of the Elasticsearch field to check to
   # see if a specific record is published, and should be publicly accessible. Each record type
