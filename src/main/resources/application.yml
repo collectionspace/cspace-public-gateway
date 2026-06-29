@@ -52,6 +52,12 @@ es:
   allowedPublishToValues: cspacepub,all
 
 zuul:
+  # Strip CORS headers from downstream responses (Elasticsearch/CollectionSpace), so the gateway's
+  # CorsFilter is the only layer that sets them. Otherwise duplicate Access-Control-Allow-Origin
+  # headers (e.g. the 'Access-Control-Allow-Origin: *' added by AWS OpenSearch's edge) break
+  # browsers that rely on the gateway's reflected-origin response.
+  ignoredHeaders: Access-Control-Allow-Credentials,Access-Control-Allow-Origin
+
   # routes:
   #   core-cspace-services:
   #     path: /core/cspace-services/**
