@@ -44,7 +44,7 @@ public class QueryModifier {
 
 		JsonNode lifecycleStateFilterNode = mapper.createObjectNode()
 			.set("bool", mapper.createObjectNode()
-				.set("mustNot", mapper.createObjectNode()
+				.set("must_not", mapper.createObjectNode()
 					.set("term", mapper.createObjectNode()
 						.put("ecm:currentLifeCycleState", "deleted")
 					)
